@@ -16,7 +16,7 @@ export function History() {
           </thead>
           <tbody>
             <tr>
-              <td>Terminar a aula</td>
+              <td>Jogar Marvel Snap</td>
               <td>30 minutos</td>
               <td>Há 1 minuto</td>
               <td>
@@ -32,15 +32,7 @@ export function History() {
               </td>
             </tr>
             <tr>
-              <td>Terminar a aula</td>
-              <td>30 minutos</td>
-              <td>Há 1 minuto</td>
-              <td>
-                <Status statusColor="yellow">Em andamento</Status>
-              </td>
-            </tr>
-            <tr>
-              <td>Terminar a aula</td>
+              <td>Realizar o commit da aula</td>
               <td>30 minutos</td>
               <td>Há 1 minuto</td>
               <td>
