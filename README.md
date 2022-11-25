@@ -10,6 +10,9 @@
 ### Veja o histórico das suas tarefas para ver se está precisando melhorar
 ![image](https://github.com/LucasSousa09/ignite2022-react-timer/blob/main/public/ignitetimer-history.png)
 
-## Tecnologias Utilizadas
+## Tecnologias & Ferramentas Utilizadas
 - React
+- Typescript
 - Styled Components
+- React Hook Form
+- zod
