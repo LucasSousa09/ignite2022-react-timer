@@ -2,6 +2,7 @@ import { Play } from 'phosphor-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as zod from 'zod'
+import { differenceInSeconds } from 'date-fns'
 
 import {
   HomeContainer,
@@ -12,7 +13,7 @@ import {
   TaskInput,
   TimerContainer,
 } from './styles'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const newCycleFormValidationSchema = zod.object({
   task: zod.string().min(1, 'Informe a tarefa'),
@@ -29,6 +30,7 @@ interface Cycle {
   id: string
   task: string
   minutesAmount: number
+  startDate: Date
 }
 
 export function Home() {
@@ -44,6 +46,18 @@ export function Home() {
     },
   })
 
+  const activeCycle = cycles.find((cycle: Cycle) => cycle.id === activeCycleId)
+
+  useEffect(() => {
+    if (activeCycle) {
+      setInterval(() => {
+        setAmountOFSecondsPassed(
+          differenceInSeconds(new Date(), activeCycle.startDate),
+        )
+      }, 1000)
+    }
+  }, [activeCycle])
+
   function handleCreateNewCycle(data: NewCycleFormData) {
     const id = String(new Date().getTime())
 
@@ -51,6 +65,7 @@ export function Home() {
       id,
       task: data.task,
       minutesAmount: data.minutesAmount,
+      startDate: new Date(),
     }
 
     // Quando a mudança de estado depender do estado anterior, é bom usarmos a arrow function
@@ -59,8 +74,6 @@ export function Home() {
 
     reset()
   }
-
-  const activeCycle = cycles.find((cycle: Cycle) => cycle.id === activeCycleId)
 
   const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
   const currentSeconds = activeCycle ? totalSeconds - amountOfSecondsPassed : 0
@@ -73,8 +86,6 @@ export function Home() {
 
   const task = watch('task')
   const isSubmitDisabled = !task
-
-  console.log(activeCycle)
 
   return (
     <HomeContainer>
