@@ -45,6 +45,7 @@ export const TableContainer = styled.div`
     }
 
     td {
+      white-space: nowrap;
       font-size: 0.875rem;
       line-height: 1.6;
 

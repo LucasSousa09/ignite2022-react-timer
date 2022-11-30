@@ -1,22 +1,25 @@
-import { createContext, ReactNode, useState } from 'react'
+import {
+  createContext,
+  ReactNode,
+  useEffect,
+  useReducer,
+  useState,
+} from 'react'
+import { Cycle, cyclesReducer } from '../reducers/cycles/reducer'
+import {
+  addNewCycleAction,
+  finishCurrentCycleAction,
+  interruptCycleAction,
+} from '../reducers/cycles/actions'
+import { differenceInSeconds } from 'date-fns'
 
 interface CreateCycleData {
   task: string
   minutesAmount: number
 }
 
-interface Cycle {
-  id: string
-  task: string
-  minutesAmount: number
-  startDate: Date
-  interruptedDate?: Date
-  finishedDate?: Date
-}
-
 interface CyclesContentData {
   cycles: Cycle[]
-  countdownFinished: boolean
   activeCycleId: string | null
   amountOfSecondsPassed: number
   activeCycle: Cycle | undefined
@@ -33,12 +36,45 @@ interface CycleContextProviderProps {
 }
 
 export function CyclesContextProvider({ children }: CycleContextProviderProps) {
-  const [cycles, setCycles] = useState<Cycle[]>([])
-  const [countdownFinished, setCountdownFinished] = useState(false)
-  const [amountOfSecondsPassed, setAmountOFSecondsPassed] = useState(0)
-  const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+  const [cyclesState, dispach] = useReducer(
+    cyclesReducer,
+    // Array de inicialização ↓↓
+    {
+      cycles: [],
+      activeCycleId: null,
+    },
+    () => {
+      const storedStateAsJSON = localStorage.getItem(
+        '@ignitimer:cycles-state-1.0.0',
+      )
 
+      if (storedStateAsJSON) {
+        return JSON.parse(storedStateAsJSON)
+      }
+
+      return {
+        cycles: [],
+        activeCycleId: null,
+      }
+    },
+  )
+
+  const { cycles, activeCycleId } = cyclesState
   const activeCycle = cycles.find((cycle: Cycle) => cycle.id === activeCycleId)
+
+  const [amountOfSecondsPassed, setAmountOFSecondsPassed] = useState(() => {
+    if (activeCycle) {
+      return differenceInSeconds(new Date(), new Date(activeCycle.startDate))
+    }
+
+    return 0
+  })
+
+  useEffect(() => {
+    const stateJSON = JSON.stringify(cyclesState)
+
+    localStorage.setItem('@ignitimer:cycles-state-1.0.0', stateJSON)
+  }, [cyclesState])
 
   function createNewCycle(data: CreateCycleData) {
     const id = String(new Date().getTime())
@@ -51,22 +87,14 @@ export function CyclesContextProvider({ children }: CycleContextProviderProps) {
     }
 
     // Quando a mudança de estado depender do estado anterior, é bom usarmos a arrow function
-    setCycles((state) => [...state, newCycle])
-    setActiveCycleId(id)
+    // setCycles((state) => [...state, newCycle])
+
+    dispach(addNewCycleAction(newCycle))
     setAmountOFSecondsPassed(0)
   }
 
   function interruptCurrentCycle() {
-    setCycles((state) =>
-      state.map((cycle) => {
-        if (cycle.id === activeCycleId) {
-          return { ...cycle, interruptedDate: new Date() }
-        } else {
-          return cycle
-        }
-      }),
-    )
-    setActiveCycleId(null)
+    dispach(interruptCycleAction(activeCycleId))
   }
 
   function setSecondsPassed(seconds: number) {
@@ -74,17 +102,20 @@ export function CyclesContextProvider({ children }: CycleContextProviderProps) {
   }
 
   function markCurrentCycleAsFinished() {
-    setCycles((state) =>
-      state.map((cycle) => {
-        if (cycle.id === activeCycleId) {
-          setCountdownFinished(true)
-          setActiveCycleId(null)
-          return { ...cycle, finisheddDate: new Date() }
-        } else {
-          return cycle
-        }
-      }),
-    )
+    dispach(finishCurrentCycleAction())
+
+    // Versão antiga utilizando useState
+    // setCycles((state) =>
+    //   state.map((cycle) => {
+    //     if (cycle.id === activeCycleId) {
+    //       setCountdownFinished(true)
+    //       setActiveCycleId(null)
+    //       return { ...cycle, finisheddDate: new Date() }
+    //     } else {
+    //       return cycle
+    //     }
+    //   }),
+    // )
   }
 
   return (
@@ -95,7 +126,6 @@ export function CyclesContextProvider({ children }: CycleContextProviderProps) {
         activeCycleId,
         createNewCycle,
         setSecondsPassed,
-        countdownFinished,
         interruptCurrentCycle,
         amountOfSecondsPassed,
         markCurrentCycleAsFinished,

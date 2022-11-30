@@ -9,7 +9,6 @@ export function Countdown() {
     activeCycle,
     activeCycleId,
     setSecondsPassed,
-    countdownFinished,
     amountOfSecondsPassed,
     markCurrentCycleAsFinished,
   } = useContext(CyclesContext)
@@ -31,7 +30,7 @@ export function Countdown() {
       interval = setInterval(() => {
         const secondsDifference = differenceInSeconds(
           new Date(),
-          activeCycle.startDate,
+          new Date(activeCycle.startDate),
         )
 
         if (secondsDifference >= totalSeconds) {
@@ -41,7 +40,6 @@ export function Countdown() {
           setSecondsPassed(secondsDifference)
         }
       }, 1000)
-      countdownFinished === true && clearInterval(interval)
     }
 
     // Reseta o use effect quando há uma mudança numa das variáveis dependentes
@@ -53,7 +51,6 @@ export function Countdown() {
     totalSeconds,
     activeCycleId,
     setSecondsPassed,
-    countdownFinished,
     markCurrentCycleAsFinished,
   ])
 
